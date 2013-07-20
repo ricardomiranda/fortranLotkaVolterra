@@ -39,11 +39,7 @@ program MohidLotkaVolterra
         real(8)                     :: DT, NbrSteps
     end type T_LV
 
-    type(T_LV), pointer :: ObjLotkaVolterra
-
-    call ConstructMohidLotkaVolterra
     call ModifyLotkaVolterra
-    call KillLotkaVolterra
 
     contains
     
@@ -57,25 +53,26 @@ program MohidLotkaVolterra
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    subroutine ConstructMohidLotkaVolterra
+    subroutine ConstructMohidLotkaVolterra (ObjLotkaVolterra)
 
-        call AllocateInstance
-        call AskValues
+        !Arguments---------------------------------------------------------------
+        type(T_LV), pointer :: ObjLotkaVolterra
+
+        !------------------------------------------------------------------------
+
+        call AllocateInstance (ObjLotkaVolterra)
+        call ASkQuestions     (ObjLotkaVolterra)
 
     end subroutine ConstructMohidLotkaVolterra
     
     !--------------------------------------------------------------------------
 
-    subroutine AskValues 
+    subroutine ASkQuestions (ObjLotkaVolterra)
+
+        !Arguments---------------------------------------------------------------
+        type(T_LV), pointer :: ObjLotkaVolterra
 
         !Local-------------------------------------------------------------------
-        real(8) :: IniPreyPopulation
-        real(8) :: IniPredatorsPopulation
-        
-        real(8) :: PreyBirthRate
-        real(8) :: PreyDestroyRate
-        real(8) :: PredatorsIncreaseRate
-        real(8) :: PredatorsDeathRate
 
         !------------------------------------------------------------------------
 
@@ -85,11 +82,25 @@ program MohidLotkaVolterra
         print*, "How many time steps to compute?"
         read*,  ObjLotkaVolterra%NbrSteps
 
+    end subroutine ASkQuestions
+    
+    !--------------------------------------------------------------------------
+
+    function StratPrey ()
+
+        !Local-------------------------------------------------------------------
+        real(8) :: IniPreyPopulation
+        
+        real(8) :: PreyBirthRate
+        real(8) :: PreyDestroyRate
+
+        !Return----------------------------------------------------------------
+        type (T_Prey), pointer                          :: StratPrey
+                                                    
+        !----------------------------------------------------------------------
+
         print*, "What is the incial prey population?"
         read*,  IniPreyPopulation
-
-        print*, "What is the incial predators population?"
-        read*,  IniPredatorsPopulation
 
         print*, "What is the prey birth rate?"
         read*,  PreyBirthRate
@@ -97,47 +108,91 @@ program MohidLotkaVolterra
         print*, "What is the prey destroy rate?"
         read*,  PreyDestroyRate
 
+        StratPrey => ConstructPrey (IniPreyPopulation, PreyBirthRate, PreyDestroyRate)
+
+    end function StratPrey
+    
+    !--------------------------------------------------------------------------
+
+    function StratPredators ()
+
+        !Local-----------------------------------------------------------------
+        real(8) :: IniPredatorsPopulation
+        
+        real(8) :: PredatorsIncreaseRate
+        real(8) :: PredatorsDeathRate
+        
+        !Return----------------------------------------------------------------
+        type (T_Predators), pointer                          :: StratPredators
+                                                    
+        !----------------------------------------------------------------------
+
+        print*, "What is the incial predators population?"
+        read*,  IniPredatorsPopulation
+
         print*, "What is the predators increase rate?"
         read*,  PredatorsIncreaseRate
 
         print*, "What is the predators death rate?"
         read*,  PredatorsDeathRate
 
-        ObjLotkaVolterra%ObjPrey      => ConstructPrey      (IniPreyPopulation,      PreyBirthRate,         PreyDestroyRate)
-        ObjLotkaVolterra%ObjPredators => ConstructPredators (IniPredatorsPopulation, PredatorsIncreaseRate, PredatorsDeathRate)
+        StratPredators => ConstructPredators (IniPredatorsPopulation, PredatorsIncreaseRate, PredatorsDeathRate)
 
-    end subroutine AskValues
+    end function StratPredators
     
     !--------------------------------------------------------------------------
 
-    subroutine AllocateInstance
-        
+    subroutine AllocateInstance (ObjLotkaVolterra)
+        !Arguments-------------------------------------------------------------
+        type(T_LV), pointer :: ObjLotkaVolterra
+
+        !----------------------------------------------------------------------
+
         allocate (ObjLotkaVolterra)
 
     end subroutine AllocateInstance
     
     !--------------------------------------------------------------------------
 
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    !SELECTOR SELECTOR SELECTOR SELECTOR SELECTOR SELECTOR SELECTOR SELECTOR SE
+    !MODIFIER MODIFIER MODIFIER MODIFIER MODIFIER MODIFIER MODIFIER MODIFIER MODI
 
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    !--------------------------------------------------------------------------
 
     subroutine ModifyLotkaVolterra 
 
-        call Loop (ObjLotkaVolterra%NbrSteps)
-    
+        !Local-----------------------------------------------------------------
+        type(T_LV),        pointer :: ObjLotkaVolterra
+        type(T_Prey),      pointer :: ObjPrey
+        type(T_Predators), pointer :: ObjPredators
+
+        !----------------------------------------------------------------------
+
+        call ConstructMohidLotkaVolterra (                           ObjLotkaVolterra)
+
+        ObjPrey      => StratPrey      ()
+        ObjPredators => StratPredators ()
+        call Loop                        (ObjPrey, ObjPredators, ObjLotkaVolterra%DT, ObjLotkaVolterra%NbrSteps)
+
+        call KillLotkaVolterra           (                       ObjLotkaVolterra)
+
     end subroutine ModifyLotkaVolterra
     
     !--------------------------------------------------------------------------
 
-    recursive subroutine Loop (NbrSteps)
+!    recursive subroutine Loop (ObjLotkaVolterra%ObjPrey, ObjLotkaVolterra%ObjPredators, NbrSteps)
+    recursive subroutine Loop (ObjPrey, ObjPredators, DT, NbrSteps)
         
-        !Return----------------------------------------------------------------         
-        real(8), intent(IN) :: NbrSteps
+        !Arguments-------------------------------------------------------------         
+        type(T_Prey),      pointer  :: ObjPrey
+        type(T_Predators), pointer  :: ObjPredators
+        real(8), intent(IN)         :: DT
+        real(8), intent(IN)         :: NbrSteps
 
         !Local-----------------------------------------------------------------
         type(T_Prey), pointer       :: NewObjPrey
@@ -152,21 +207,23 @@ cd1 :   if (NbrSteps .LE. 0.0) then
             print*, "Simulation terminated successfully."
 
         else   cd1
-            PreyPopulationSize      = GetPreyPopulationSize      (ObjLotkaVolterra%ObjPrey)
-            PredatorsPopulationSize = GetPredatorsPopulationSize (ObjLotkaVolterra%ObjPredators)
+            PreyPopulationSize      = GetPreyPopulationSize      (ObjPrey)
+            PredatorsPopulationSize = GetPredatorsPopulationSize (ObjPredators)
 
             print*, NbrSteps, PreyPopulationSize, PredatorsPopulationSize
-        
-            NewObjPrey     => ModifyPreyPopulation     (ObjLotkaVolterra%ObjPrey,      PredatorsPopulationSize, ObjLotkaVolterra%DT)
-            NewObjPredators=> ModifyPredatorsPopulation(ObjLotkaVolterra%ObjPredators, PreyPopulationSize,      ObjLotkaVolterra%DT)
+!$OMP PARALLEL
+!$OMP SECTIONS
+!$OMP SECTION 
+            NewObjPrey      => ModifyPreyPopulation      (ObjPrey,      PredatorsPopulationSize, DT)
+            call PreyGarbageCollector                    (ObjPrey)
 
-            call PreyGarbageCollector      (ObjLotkaVolterra%ObjPrey)
-            call PredatorsGarbageCollector (ObjLotkaVolterra%ObjPredators)
-
-            ObjLotkaVolterra%ObjPrey      => NewObjPrey
-            ObjLotkaVolterra%ObjPredators => NewObjPredators
+!$OMP SECTION
+            NewObjPredators => ModifyPredatorsPopulation (ObjPredators, PreyPopulationSize,      DT)
+            call PredatorsGarbageCollector               (ObjPredators)
+!$OMP END SECTIONS NOWAIT
+!$OMP END PARALLEL
         
-            call Loop (NbrSteps - ObjLotkaVolterra%DT)
+            call Loop (NewObjPrey, NewObjPredators, DT, NbrSteps - DT)
         end if cd1
     
     end subroutine Loop
@@ -183,7 +240,11 @@ cd1 :   if (NbrSteps .LE. 0.0) then
 
 
 
-    subroutine KillLotkaVolterra
+    subroutine KillLotkaVolterra (ObjLotkaVolterra)
+        !Arguments-------------------------------------------------------------
+        type(T_LV), pointer :: ObjLotkaVolterra
+
+        !----------------------------------------------------------------------
 
         call KillPrey     (ObjLotkaVolterra%ObjPrey)
         call KillPredators(ObjLotkaVolterra%ObjPredators)

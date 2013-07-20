@@ -33,9 +33,6 @@ program MohidLotkaVolterra
     implicit none
 
     type T_LV
-        type(T_Prey), pointer       :: ObjPrey
-        type(T_Predators), pointer  :: ObjPredators
-
         real(8)                     :: DT, NbrSteps
     end type T_LV
 
@@ -175,24 +172,21 @@ program MohidLotkaVolterra
 
         call ConstructMohidLotkaVolterra (                           ObjLotkaVolterra)
 
-        ObjPrey      => StratPrey      ()
-        ObjPredators => StratPredators ()
-        call Loop                        (ObjPrey, ObjPredators, ObjLotkaVolterra%DT, ObjLotkaVolterra%NbrSteps)
-
-        call KillLotkaVolterra           (                       ObjLotkaVolterra)
+        ObjPrey      => StratPrey        ()
+        ObjPredators => StratPredators   ()
+        call Loop                        (ObjLotkaVolterra, ObjPrey, ObjPredators, ObjLotkaVolterra%NbrSteps)
 
     end subroutine ModifyLotkaVolterra
     
     !--------------------------------------------------------------------------
 
-!    recursive subroutine Loop (ObjLotkaVolterra%ObjPrey, ObjLotkaVolterra%ObjPredators, NbrSteps)
-    recursive subroutine Loop (ObjPrey, ObjPredators, DT, NbrSteps)
+    recursive subroutine Loop (ObjLotkaVolterra, ObjPrey, ObjPredators, NbrSteps)
         
         !Arguments-------------------------------------------------------------         
-        type(T_Prey),      pointer  :: ObjPrey
-        type(T_Predators), pointer  :: ObjPredators
-        real(8), intent(IN)         :: DT
-        real(8), intent(IN)         :: NbrSteps
+        type(T_LV),        pointer :: ObjLotkaVolterra
+        type(T_Prey),      pointer :: ObjPrey
+        type(T_Predators), pointer :: ObjPredators
+        real(8), intent(IN)        :: NbrSteps
 
         !Local-----------------------------------------------------------------
         type(T_Prey), pointer       :: NewObjPrey
@@ -206,24 +200,21 @@ program MohidLotkaVolterra
 cd1 :   if (NbrSteps .LE. 0.0) then
             print*, "Simulation terminated successfully."
 
+            call KillLotkaVolterra (ObjLotkaVolterra, ObjPrey, ObjPredators)
+
         else   cd1
             PreyPopulationSize      = GetPreyPopulationSize      (ObjPrey)
             PredatorsPopulationSize = GetPredatorsPopulationSize (ObjPredators)
 
             print*, NbrSteps, PreyPopulationSize, PredatorsPopulationSize
-!$OMP PARALLEL
-!$OMP SECTIONS
-!$OMP SECTION 
-            NewObjPrey      => ModifyPreyPopulation      (ObjPrey,      PredatorsPopulationSize, DT)
+
+            NewObjPrey      => ModifyPreyPopulation      (ObjPrey,      PredatorsPopulationSize, ObjLotkaVolterra%DT)
             call PreyGarbageCollector                    (ObjPrey)
 
-!$OMP SECTION
-            NewObjPredators => ModifyPredatorsPopulation (ObjPredators, PreyPopulationSize,      DT)
+            NewObjPredators => ModifyPredatorsPopulation (ObjPredators, PreyPopulationSize,      ObjLotkaVolterra%DT)
             call PredatorsGarbageCollector               (ObjPredators)
-!$OMP END SECTIONS NOWAIT
-!$OMP END PARALLEL
         
-            call Loop (NewObjPrey, NewObjPredators, DT, NbrSteps - DT)
+            call Loop (ObjLotkaVolterra, NewObjPrey, NewObjPredators, NbrSteps - ObjLotkaVolterra%DT)
         end if cd1
     
     end subroutine Loop
@@ -240,16 +231,18 @@ cd1 :   if (NbrSteps .LE. 0.0) then
 
 
 
-    subroutine KillLotkaVolterra (ObjLotkaVolterra)
+    subroutine KillLotkaVolterra (ObjLotkaVolterra, ObjPrey, ObjPredators)
         !Arguments-------------------------------------------------------------
-        type(T_LV), pointer :: ObjLotkaVolterra
+        type(T_LV),        pointer :: ObjLotkaVolterra
+        type(T_Prey),      pointer :: ObjPrey
+        type(T_Predators), pointer :: ObjPredators
 
         !----------------------------------------------------------------------
 
-        call KillPrey     (ObjLotkaVolterra%ObjPrey)
-        call KillPredators(ObjLotkaVolterra%ObjPredators)
+        call KillPrey      (ObjPrey)
+        call KillPredators (ObjPredators)
 
-        deallocate (ObjLotkaVolterra)
+        deallocate         (ObjLotkaVolterra)
 
     end subroutine KillLotkaVolterra
     

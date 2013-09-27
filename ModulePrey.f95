@@ -11,7 +11,7 @@
 !------------------------------------------------------------------------------
 !
 !This program is free software; you can redistribute it and/or
-!modify it under the terms of the GNU General Public License 
+!modify it under the terms of the GNU General Public License
 !version 2, as published by the Free Software Foundation.
 !
 !This program is distributed in the hope that it will be useful,
@@ -24,26 +24,26 @@
 !Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 !
 !------------------------------------------------------------------------------
- 
+
 Module ModulePrey
 
     implicit none
 
     !Types---------------------------------------------------------------------
-    
+
     public :: T_Prey
     type      T_Prey
         private
         real(8), pointer :: PopulationSize
         !Population is computed every time step
-        
+
         real(8), pointer :: IncreaseRate
         real(8), pointer :: DecreaseRate
     end type  T_Prey
 
     !--------------------------------------------------------------------------
 
-    private 
+    private
 
     !Subroutines---------------------------------------------------------------
 
@@ -57,21 +57,21 @@ Module ModulePrey
     public  :: GetPreyPopulationSize
     public  :: GetPreyIncreaseRate
     public  :: GetPreyDecreaseRate
-                         
+
     !Modifier
     public  :: ModifyPreyPopulation
     private ::      Birth
     private ::      Destroy
 
     !Destructor
-    public  :: KillPrey                                                    
+    public  :: KillPrey
     private ::      DeAllocateInstance
     public  :: PreyGarbageCollector
-    
+
     !Interfaces----------------------------------------------------------------
 
     !--------------------------------------------------------------------------
-    
+
     contains
 
 
@@ -83,13 +83,13 @@ Module ModulePrey
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function ConstructPrey(IniPopulation, IncreaseRate, DecreaseRate) 
+    pure function ConstructPrey(IniPopulation, IncreaseRate, DecreaseRate)
 
         !Arguments---------------------------------------------------------------
         real(8), intent(IN)                             :: IniPopulation
         real(8), intent(IN)                             :: IncreaseRate
         real(8), intent(IN)                             :: DecreaseRate
-        
+
         !Return------------------------------------------------------------------
         type (T_Prey), pointer                          :: ConstructPrey
 
@@ -106,16 +106,15 @@ Module ModulePrey
         !----------------------------------------------------------------------
 
     end function ConstructPrey
- 
+
     !--------------------------------------------------------------------------
-    
-    subroutine AllocateInstance(NewObjPrey)
+
+    pure subroutine AllocateInstance(NewObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: NewObjPrey
-                                                    
-        !Local-----------------------------------------------------------------
 
+        !Local-----------------------------------------------------------------
 
         !Allocates new instance
         allocate (NewObjPrey)
@@ -124,17 +123,17 @@ Module ModulePrey
         allocate (NewObjPrey%DecreaseRate)
 
     end subroutine AllocateInstance
- 
+
     !--------------------------------------------------------------------------
-    
-    subroutine InitializeValues(NewObjPrey, IniPopulation, IncreaseRate, DecreaseRate)
+
+    pure subroutine InitializeValues(NewObjPrey, IniPopulation, IncreaseRate, DecreaseRate)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                     :: NewObjPrey
         real(8), intent(IN)                             :: IniPopulation
         real(8), intent(IN)                             :: IncreaseRate
         real(8), intent(IN)                             :: DecreaseRate
-                                                    
+
         !Local-----------------------------------------------------------------
 
         NewObjPrey%PopulationSize = IniPopulation
@@ -144,13 +143,13 @@ Module ModulePrey
     end subroutine InitializeValues
 
     !--------------------------------------------------------------------------
-    
-    function AllocateReplica(ObjPrey) 
+
+    function AllocateReplica(ObjPrey)
 
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                               :: ObjPrey
-                                                    
+
         !Return----------------------------------------------------------------
         type (T_Prey), pointer                               :: AllocateReplica
 
@@ -161,7 +160,7 @@ Module ModulePrey
         !Allocates new values
         allocate (NewObjPrey)
         allocate (NewObjPrey%PopulationSize)
-        
+
         NewObjPrey%PopulationSize = -99999.9
         !New value
 
@@ -184,11 +183,11 @@ Module ModulePrey
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    
+
 
     !--------------------------------------------------------------------------
-    
-    function GetPreyPopulationSize (ObjPrey)
+
+    pure function GetPreyPopulationSize (ObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: ObjPrey
@@ -201,10 +200,10 @@ Module ModulePrey
         GetPreyPopulationSize = ObjPrey%PopulationSize
 
     end function GetPreyPopulationSize
-    
+
     !--------------------------------------------------------------------------
-    
-    function GetPreyIncreaseRate (ObjPrey)
+
+    pure function GetPreyIncreaseRate (ObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: ObjPrey
@@ -217,10 +216,10 @@ Module ModulePrey
         GetPreyIncreaseRate = ObjPrey%IncreaseRate
 
     end function GetPreyIncreaseRate
-    
+
     !--------------------------------------------------------------------------
-    
-    function GetPreyDecreaseRate (ObjPrey)
+
+    pure function GetPreyDecreaseRate (ObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: ObjPrey
@@ -233,9 +232,9 @@ Module ModulePrey
         GetPreyDecreaseRate = ObjPrey%DecreaseRate
 
     end function GetPreyDecreaseRate
-    
+
     !--------------------------------------------------------------------------
-    
+
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -250,7 +249,7 @@ Module ModulePrey
         type (T_Prey),  pointer                   :: ObjPrey
         real(8), intent(IN)                       :: PredatorsPopulationSize
         real(8), intent(IN)                       :: DT
-                                                    
+
         !Return------------------------------------------------------------------
         type (T_Prey), pointer                    :: ModifyPreyPopulation
 
@@ -271,12 +270,12 @@ Module ModulePrey
 
     !--------------------------------------------------------------------------
 
-    function Birth(PreyPopulationSize, IncreaseRate, DT)
+    pure function Birth(PreyPopulationSize, IncreaseRate, DT)
         !Arguments-------------------------------------------------------------
         real(8), pointer, intent(IN)                   :: PreyPopulationSize
         real(8), intent(IN)                            :: IncreaseRate
         real(8), intent(IN)                            :: DT
-                                                    
+
         !Return----------------------------------------------------------------
         real(8)                                        :: Birth
 
@@ -292,13 +291,13 @@ Module ModulePrey
 
     !--------------------------------------------------------------------------
 
-    function Destroy(PreyPopulationSize, DecreaseRate, PredatorsPopulationSize, DT)
+    pure function Destroy(PreyPopulationSize, DecreaseRate, PredatorsPopulationSize, DT)
         !Arguments-------------------------------------------------------------
         real(8), pointer, intent(IN)                   :: PreyPopulationSize
         real(8), intent(IN)                            :: DecreaseRate
         real(8), intent(IN)                            :: PredatorsPopulationSize
         real(8), intent(IN)                            :: DT
-                                                    
+
         !Return----------------------------------------------------------------
         real(8)                                        :: Destroy
 
@@ -323,12 +322,12 @@ Module ModulePrey
 
 
 
-    subroutine KillPrey(ObjPrey)
+    pure subroutine KillPrey(ObjPrey)
 
         !Arguments---------------------------------------------------------------
         type (T_Prey),     pointer                      :: ObjPrey
 
-        !Return------------------------------------------------------------------         
+        !Return------------------------------------------------------------------
 
         !External----------------------------------------------------------------
 
@@ -342,16 +341,15 @@ Module ModulePrey
         !------------------------------------------------------------------------
 
     end subroutine KillPrey
-        
+
 
     !------------------------------------------------------------------------
-    
-    
-    subroutine DeallocateInstance (ObjPrey)
+
+    pure subroutine DeallocateInstance (ObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: ObjPrey
-                                                    
+
         !Local-----------------------------------------------------------------
 
         !------------------------------------------------------------------------
@@ -361,16 +359,16 @@ Module ModulePrey
         deallocate (ObjPrey%IncreaseRate)
         deallocate (ObjPrey%DecreaseRate)
         deallocate (ObjPrey)
-            
+
     end subroutine DeallocateInstance
 
     !--------------------------------------------------------------------------
 
-    subroutine PreyGarbageCollector (ObjPrey)
+    pure subroutine PreyGarbageCollector (ObjPrey)
 
         !Arguments-------------------------------------------------------------
         type (T_Prey), pointer                          :: ObjPrey
-                                                    
+
         !Local-----------------------------------------------------------------
 
         !------------------------------------------------------------------------
@@ -378,7 +376,9 @@ Module ModulePrey
         !Partially deallocates instance
         deallocate (ObjPrey%PopulationSize)
         deallocate (ObjPrey)
-            
+
+        !------------------------------------------------------------------------
+
     end subroutine PreyGarbageCollector
 
     !--------------------------------------------------------------------------

@@ -6,5 +6,13 @@ I want to develop distributed, parallel and concurrent OO that scales and perfor
 better than conventional OO does. In essence the plan is to use the "Functional Core,
 Imperative Shell" concept form Gary Bernhardt (https://www.destroyallsoftware.com).
 
+To run it:
+ - ulimit -s unlimited;
+ - f95 -o LVs ModulePredators.f95 ModulePrey.f95 MainLotkaVolterra.f95; and
+ - ./LVs
+
 This code is released under GPL so feel free to use it.
+
+© Ricardo Miranda, 2013.
+mail@ricardomiranda.com
 
